@@ -66,10 +66,28 @@ token-value-upgrade:
     4: 2.5
     5: 3.0
 # Cấu hình tỉ lệ rơi NFT theo độ hiếm
+  tiers:
+    common:
+      lucky_charm_1: 60
+      explosion_pickaxe_1: 20
+      laser_pickaxe_1: 20
 
-rarity_drop_rates:
-  common: 5.0     # 5% cơ hội nhận NFT common
-  uncommon: 2.0   # 2% cơ hội nhận NFT uncommon
-  rare: 1.0       # 1% cơ hội nhận NFT rare
-  epic: 0.5       # 0.5% cơ hội nhận NFT epic
-  legendary: 0.1  # 0.1% cơ hội nhận NFT legendary
+    rare:
+      lucky_charm_2: 40
+      explosion_pickaxe_2: 30
+      laser_pickaxe_2: 30
+
+    epic:
+      lucky_charm_5: 40
+      explosion_pickaxe_3: 30
+      laser_pickaxe_3: 30
+
+    legendary:
+      lucky_charm_10: 40
+      explosion_pickaxe_4: 30
+      laser_pickaxe_4: 30
+
+    mythic:
+      lucky_charm_20: 40
+      explosion_pickaxe_5: 30
+      laser_pickaxe_5: 30
