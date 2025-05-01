@@ -1,5 +1,9 @@
 package me.tien.nftminer.listeners;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.minecraft.nftplugin.service.MintNFTService;
 import me.tien.nftminer.NFTMiner;
 import me.tien.nftminer.integration.NFTPluginIntegration;
@@ -17,9 +21,11 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 
 public class MiningListener implements Listener {
 
@@ -36,6 +42,8 @@ public class MiningListener implements Listener {
     private double baseDropChance = 0.05;
     private int cooldownSeconds = 3;
     private final Map<UUID, Long> lastDropTime = new ConcurrentHashMap<>();
+    private final Map<String, Map<String, Integer>> nftRates = new HashMap<>();
+
 
     public MiningListener(NFTMiner plugin) {
         this.plugin = plugin;
@@ -45,6 +53,7 @@ public class MiningListener implements Listener {
         setupRarityColors();
         loadConfig();
         loadNFTsByRarity();
+        loadRates(); // 👈 THÊM DÒNG NÀY
     }
 
     private void setupRarityColors() {
@@ -167,7 +176,7 @@ public class MiningListener implements Listener {
                 e.printStackTrace();
             }
         }
-    
+
         FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
 
         baseDropChance = config.getDouble("drop-settings.base-drop-chance", 0.05);
@@ -190,10 +199,99 @@ public class MiningListener implements Listener {
             plugin.getLogger().warning("[NFTMiner] Không tìm thấy phần 'rarity-drop-rates' trong config. Dùng mặc định.");
         }
     }
+    private void loadRates() {
+        File configFile = new File(plugin.getDataFolder(), "config.yml");
+        FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
+
+        ConfigurationSection tiersSection = config.getConfigurationSection("tiers");
+        if (tiersSection == null) {
+            plugin.getLogger().severe("[NFTMiner] Không tìm thấy phần 'tiers' trong config.yml");
+            return;
+        }
+
+        for (String tier : tiersSection.getKeys(false)) {
+            loadNFTRates(tier, tiersSection);
+        }
+    }
+    private void loadNFTRates(String tier, ConfigurationSection section) {
+        ConfigurationSection tierSection = section.getConfigurationSection(tier);
+        if (tierSection == null) {
+            plugin.getLogger().severe("[NFTMiner] Không tìm thấy tier " + tier + " trong config.yml");
+            return;
+        }
+
+        Map<String, Integer> rates = new HashMap<>();
+        for (String nft : tierSection.getKeys(false)) {
+            int rate = tierSection.getInt(nft);
+            rates.put(nft, rate);
+            plugin.getLogger().info("[NFTMiner] Loaded NFT rate: " + nft + " = " + rate + " (" + tier + ")");
+        }
+
+        nftRates.put(tier.toLowerCase(), rates);
+    }
+
 
     private void loadNFTsByRarity() {
-        // Không thay đổi
+        nftsByRarity.clear();
+        String[] rarities = {"common", "uncommon", "rare", "epic", "legendary"};
+        for (String rarity : rarities) {
+            nftsByRarity.put(rarity, new ArrayList<>());
+        }
+
+        try {
+            if (nftIntegration == null) {
+                plugin.getLogger().warning("[NFTMiner] NFTPlugin chưa kết nối. Không thể load NFT metadata.");
+                return;
+            }
+
+            File metadataFolder = new File(nftIntegration.getNFTPluginInstance().getDataFolder(), "metadata");
+            if (!metadataFolder.exists() || !metadataFolder.isDirectory()) {
+                plugin.getLogger().warning("[NFTMiner] Không tìm thấy thư mục metadata của NFTPlugin.");
+                return;
+            }
+
+            File[] files = metadataFolder.listFiles((dir, name) -> name.toLowerCase().endsWith(".json"));
+            if (files == null || files.length == 0) {
+                plugin.getLogger().warning("[NFTMiner] Không tìm thấy file metadata JSON.");
+                return;
+            }
+
+            Gson gson = new Gson();
+
+            for (File file : files) {
+                try (FileReader reader = new FileReader(file)) {
+                    JsonObject json = gson.fromJson(reader, JsonObject.class);
+
+                    String nftId = file.getName().replace(".json", "");
+                    String rarity = "common"; // mặc định
+
+                    if (json.has("attributes")) {
+                        JsonArray attributes = json.getAsJsonArray("attributes");
+                        for (JsonElement element : attributes) {
+                            JsonObject attribute = element.getAsJsonObject();
+                            if ("Rarity".equalsIgnoreCase(attribute.get("trait_type").getAsString())) {
+                                rarity = attribute.get("value").getAsString().toLowerCase();
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!nftsByRarity.containsKey(rarity)) {
+                        plugin.getLogger().warning("[NFTMiner] Rarity không xác định: " + rarity + ". Gán vào common.");
+                        rarity = "common";
+                    }
+
+                    nftsByRarity.get(rarity).add(nftId);
+                    plugin.getLogger().info("[NFTMiner] Loaded NFT: " + nftId + " (rarity: " + rarity + ")");
+                } catch (Exception e) {
+                    plugin.getLogger().warning("[NFTMiner] Lỗi khi đọc metadata file: " + file.getName() + " - " + e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            plugin.getLogger().log(Level.SEVERE, "[NFTMiner] Lỗi khi load NFT metadata:", e);
+        }
     }
+
 
     public void reload() {
         rarityDropRates.clear();

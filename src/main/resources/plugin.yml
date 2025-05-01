@@ -26,3 +26,6 @@ commands:
     description: Đặt lại toàn bộ cấp độ nâng cấp
     usage: /resetupgrades
     permission: nftminer.resetupgrades
+  help:
+    description: Xem thông tin về plugin
+    usage: /help

@@ -1,16 +1,11 @@
 package me.tien.nftminer;
 
+import me.tien.nftminer.commands.*;
 import me.tien.nftminer.listeners.MiningListener;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import me.tien.nftminer.commands.ClaimCommand;
-import me.tien.nftminer.commands.MiningBoxCommand;
-import me.tien.nftminer.commands.ResetMineCommand;
-import me.tien.nftminer.commands.ResetUpgradeCommand;
-import me.tien.nftminer.commands.ShopCommand;
-import me.tien.nftminer.commands.TokenCommand;
 import me.tien.nftminer.gui.ShopGUI;
 import me.tien.nftminer.integration.MinePathIntegration;
 import me.tien.nftminer.integration.NFTPluginIntegration;
@@ -80,7 +75,7 @@ public class NFTMiner extends JavaPlugin {
         getCommand("miningbox").setExecutor(new MiningBoxCommand(this));
         getCommand("resetmine").setExecutor(new ResetMineCommand(this));
         getCommand("resetupgrades").setExecutor(new ResetUpgradeCommand(this, upgradeManager));
-
+        getCommand("help").setExecutor(new HelpCommand(this));
         // Đăng ký listener
         getServer().getPluginManager().registerEvents(new ShopListener(shopGUI), this);
         getServer().getPluginManager().registerEvents(new PlayerListener(upgradeManager), this);
@@ -126,14 +121,12 @@ public class NFTMiner extends JavaPlugin {
     public MinePathIntegration getMinePathIntegration() {
         return minePathIntegration;
     }
-
     /**
      * Lấy VoidMine
      */
     public VoidMine getVoidMine() {
         return voidMine;
     }
-
     /** Thêm getter này: */
     public UpgradeManager getUpgradeManager() {
         return upgradeManager;

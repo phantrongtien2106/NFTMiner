@@ -129,7 +129,7 @@ public class SpeedUpgrade implements Upgrade {
 
     @Override
     public String getType() {
-        return "speed";
+        return "haste";
     }
 
     @Override

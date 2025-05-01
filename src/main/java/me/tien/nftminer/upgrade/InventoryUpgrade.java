@@ -29,10 +29,10 @@ public class InventoryUpgrade implements Upgrade {
     @Override
     public void loadConfig() {
         levelCosts.clear();
-        levelCosts.put(1, 0); // Hàng 1: 50 token
-        levelCosts.put(2, 10000); // Hàng 2: 100 token
-        levelCosts.put(3, 20000); // Hàng 3: 150 token
-        levelCosts.put(4, 50000); // Hàng 4: 200 token
+        levelCosts.put(1, 10000); // Hàng 1: 50 token
+        levelCosts.put(2, 20000); // Hàng 2: 100 token
+        levelCosts.put(3, 50000); // Hàng 3: 150 token
+        levelCosts.put(4, 100000); // Hàng 4: 200 token
     }
 
     @Override
@@ -60,7 +60,7 @@ public class InventoryUpgrade implements Upgrade {
     @Override
     public int getNextLevelCost(Player player) {
         int currentLevel = getLevel(player);
-        return levelCosts.getOrDefault(currentLevel + 1, -1);
+        return levelCosts.getOrDefault(currentLevel + 1, 0);
     }
 
     @Override
