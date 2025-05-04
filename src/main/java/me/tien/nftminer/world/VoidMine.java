@@ -115,6 +115,27 @@ public class VoidMine {
         }
         playerMines.clear();
     }
+    /**
+     * Kiểm tra xem khu đào có trống không và reset nếu cần
+     */
+    public void checkAndResetMineIfEmpty(Player player, Location origin) {
+        World world = origin.getWorld();
+        int x0 = origin.getBlockX();
+        int y0 = origin.getBlockY();
+        int z0 = origin.getBlockZ();
+
+        for (int x = 0; x < boxWidth; x++) {
+            for (int y = 0; y < boxHeight; y++) {
+                for (int z = 0; z < boxLength; z++) {
+                    Location loc = new Location(world, x0 + x, y0 + y, z0 + z);
+                    if (!loc.getBlock().getType().isAir()) return;
+                }
+            }
+        }
+
+        Bukkit.getScheduler().runTask(plugin, () ->
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "resetmine " + player.getName()));
+    }
 
     /**
      * Class đại diện cho khu đào của mỗi người chơi
@@ -343,4 +364,5 @@ public class VoidMine {
     private Logger getLogger() {
         return plugin.getLogger();
     }
+
 }

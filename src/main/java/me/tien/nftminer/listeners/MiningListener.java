@@ -76,6 +76,7 @@ public class MiningListener implements Listener {
             if (playerMine != null && playerMine.isInMiningBox(block.getLocation())) {
                 if (isMineableMaterial(block.getType())) {
                     handleNFTDrop(player);
+                    voidMine.checkAndResetMineIfEmpty(player, block.getLocation());
                 }
             }
         }
